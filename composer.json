@@ -1,0 +1,55 @@
+{
+    "name": "auxfin/mfi",
+    "type": "library",
+    "description": "mfi and wallet of umva",
+    "keywords": [
+        "php",
+        "laravel",
+        "template"
+    ],
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Auxfin\\Mfi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Auxfin\\Mfi\\Tests\\": "tests/src/",
+            "Auxfin\\Mfi\\Tests\\Database\\Factories\\": "tests/database/factories"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Auxfin\\Mfi\\MfiServiceProvider"
+            ]
+        }
+    },
+    "authors": [
+        {
+            "name": "Sabin Maharjan",
+            "email": "sabin.maharjan@auxfin.com"
+        }
+    ],
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "scripts": {
+        "testbench": "vendor/bin/testbench package:discover --ansi",
+        "analyse": "vendor/bin/phpstan analyse src tests",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "require": {
+        "php": "^8.1|^8.2",
+        "tomatophp/console-helpers": "^1.1"
+    },
+    
+    "version": "v1.0.0"
+}
