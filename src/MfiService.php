@@ -41,7 +41,7 @@ class MfiService
         }
     }
 
-    public function getConnected(string $mfi_id, string $user_id)
+    public function getConnected(string $mfi_id, string $user_id, string $type)
     {
         try {
             $token = $this->getMfiToken();
@@ -51,7 +51,8 @@ class MfiService
                 [
                     'query' => [
                         "mfi_id" => $mfi_id,
-                        "user_id" => $user_id
+                        "user_id" => $user_id,
+                        "type" => $type
                     ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
@@ -318,10 +319,11 @@ class MfiService
 
     }
 
-    public function applyLoan(int $mfi_id, int $user_id, string $purpose, float $amount, int $repayment_period, string $requested_by, string $account_number)
+    public function applyLoan($mfi_id, $user_id, $purpose, $amount, $repayment_period, $requested_by, $account_number)
     {
         try {
             $token = $this->getMfiToken();
+
 
             $connection = $this->checkConnection($mfi_id, 'applyLoan');
 
@@ -396,6 +398,59 @@ class MfiService
             }
 
             return $ssoToken->access_token;
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+    public function listLoanApplications($mfi_id, $user_id)
+    {
+        try {
+            $token = $this->getMfiToken();
+
+
+
+            $response = $this->client->get(
+                $this->apiUrl . '/api/loan/list_application',
+                [
+                    "query"=>[
+                        "mfi_id"=>$mfi_id,
+                        "user_id"=>$user_id
+                    ]
+,
+                    "headers" => [
+                        "Authorization" => "Bearer $token"
+                    ]
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function listLoans($mfi_id, $user_id)
+    {
+        try {
+            $token = $this->getMfiToken();
+
+
+
+            $response = $this->client->get(
+                $this->apiUrl . '/api/loan/list_loan',
+                [
+                    "query"=>[
+                        "mfi_id"=>$mfi_id,
+                        "user_id"=>$user_id
+                    ]
+                    ,
+                    "headers" => [
+                        "Authorization" => "Bearer $token"
+                    ]
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
         } catch (\Exception $e) {
             throw $e;
         }

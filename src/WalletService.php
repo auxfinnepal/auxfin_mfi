@@ -2,8 +2,6 @@
 
 namespace Auxfin\Mfi;
 
-use App\Models\SsoToken;
-use Carbon\Carbon;
 use GuzzleHttp\Client;
 
 class WalletService
@@ -21,7 +19,8 @@ class WalletService
 
 
 
-    public function getWallet(int $user_id){
+    public function getWallet(int $user_id)
+    {
         try {
             $token = $this->mfiService->getMfiToken();
             $response = $this->client->get(
@@ -38,14 +37,18 @@ class WalletService
                 ]
             );
             return json_decode($response->getBody()->getContents());
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             throw $e;
         }
     }
-    public function transaction( $user_id, $wallet_id,$mfi_id, $amount,$transaction_type,$to_user_id){
+    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark)
+    {
+
         try {
             $token = $this->mfiService->getMfiToken();
+
             $connection = null;
+
             if ($mfi_id) {
                 $connection = $this->mfiService->checkConnection($mfi_id, 'transaction');
             }
@@ -63,6 +66,8 @@ class WalletService
                         "class" => $connection->class ?? null,
                         "transaction_type" => $transaction_type,
                         "to_user_id"=>$to_user_id ?? null,
+                        "account_number"=>$account,
+                        "remark"=>$remark,
 
                     ],
                     "headers" => [
@@ -71,9 +76,33 @@ class WalletService
                 ]
             );
             return json_decode($response->getBody()->getContents());
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
+
             throw $e;
         }
     }
+    public function getWalletTransactions($from_date, $to_date, $user_id, $wallet_id)
+    {
+        try {
+            $token = $this->mfiService->getMfiToken();
+            $response = $this->client->get(
+                $this->apiUrl . '/api/wallet/transactions',
+                [
+                    'query' => [
+                        "from_date" => $from_date,
+                        "to_date" => $to_date,
+                        "wallet_id" => $wallet_id,
+                        "user_id" => $user_id,
 
+                    ],
+                    "headers" => [
+                        "Authorization" => "Bearer $token"
+                    ]
+                ]
+            );
+            return json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
 }

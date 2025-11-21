@@ -23,9 +23,9 @@ trait useMfi
         return $this->mfiService->listMfi($country, $status);
     }
 
-    public function getConnected(string $mfi_id, string $user_id)
+    public function getConnected(string $mfi_id, string $user_id, string $type = null)
     {
-        return $this->mfiService->getConnected($mfi_id, $user_id);
+        return $this->mfiService->getConnected($mfi_id, $user_id, $type);
     }
 
     public function checkConnection(string $mfi_id, string $method)
@@ -84,4 +84,19 @@ trait useMfi
 
         return $this->mfiService->depositAmount($account_number, $mfi_id, $amount);
     }
+
+    public function applyLoanByMfi($mfi_id, $user_id, $purpose, $amount, $repayment_period, $requested_by, $account_number)
+    {
+        return $this->mfiService->applyLoan($mfi_id, $user_id, $purpose, $amount, $repayment_period, $requested_by, $account_number);
+    }
+    public function getLoanApplications($mfi_id, $user_id)
+    {
+        return $this->mfiService->listLoanApplications($mfi_id, $user_id);
+    }
+
+    public function getLoans($mfi_id, $user_id)
+    {
+        return $this->mfiService->listLoans($mfi_id, $user_id);
+    }
+
 }

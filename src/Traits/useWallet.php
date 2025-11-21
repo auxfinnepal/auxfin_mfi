@@ -2,10 +2,7 @@
 
 namespace Auxfin\Mfi\Traits;
 
-use Auxfin\Mfi\MfiService;
-use Auxfin\Mfi\OtpService;
 use Auxfin\Mfi\WalletService;
-use mysql_xdevapi\Exception;
 
 trait useWallet
 {
@@ -19,19 +16,29 @@ trait useWallet
 
     public function getWallet(int $user_id)
     {
-        try{
+        try {
             return $this->walletService->getWallet($user_id);
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             throw $e;
         }
 
     }
 
-    public function transaction($user_id, $wallet_id,$mfi_id, $amount,$transaction_type,$to_user_id){
+    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark)
+    {
         try {
-            return $this->walletService->transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type,$to_user_id);
+
+            return $this->walletService->transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark);
+        } catch (\Exception $e) {
+            throw $e;
         }
-        catch (\Exception $e){
+    }
+
+    public function getWalletTransactionsData($from_date, $to_date, $user_id, $wallet_id)
+    {
+        try {
+            return $this->walletService->getWalletTransactions($from_date, $to_date, $user_id, $wallet_id);
+        } catch (\Exception $e) {
             throw $e;
         }
     }
