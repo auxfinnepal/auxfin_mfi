@@ -98,5 +98,11 @@ trait useMfi
     {
         return $this->mfiService->listLoans($mfi_id, $user_id);
     }
+    public function validateLoan($mfi_id, $user_id,$amount,$application_id,$note,$repayment_period,$interest_rate,$account_number){
+        return $this->mfiService->validateLoan($mfi_id, $user_id,$amount,$application_id,$note,$repayment_period,$interest_rate,$account_number);
+    }
+    public function rejectLoan($application_id,$note,$account_number){
+        return $this->mfiService->rejectLoan($application_id,$note,$account_number);
+    }
 
 }

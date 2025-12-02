@@ -455,4 +455,66 @@ class MfiService
             throw $e;
         }
     }
+
+    public function validateLoan($mfi_id, $user_id,$amount,$application_id,$note,$repayment_period,$interest_rate,$account_number)
+    {
+        try {
+            $token = $this->getMfiToken();
+
+
+
+            $response = $this->client->get(
+                $this->apiUrl . '/api/loan/validate',
+                [
+                    "query"=>[
+                        "loan_application_id"=>$application_id,
+                        "note"=>$note,
+                        "account_number"=>$account_number,
+                        "amount"=>$amount,
+                        "interest_rate"=>$interest_rate,
+                        "repayment_period"=>$repayment_period,
+                        "user_id"=>$user_id,
+                        "mfi_id"=>$mfi_id
+
+                    ]
+                    ,
+                    "headers" => [
+                        "Authorization" => "Bearer $token"
+                    ]
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+    public function rejectLoan($application_id,$note,$account_number)
+    {
+        try {
+            $token = $this->getMfiToken();
+
+
+
+            $response = $this->client->get(
+                $this->apiUrl . '/api/loan/reject',
+                [
+                    "query"=>[
+                        "loan_application_id"=>$application_id,
+                        "note"=>$note,
+                        "account_number"=>$account_number,
+
+                    ]
+                    ,
+                    "headers" => [
+                        "Authorization" => "Bearer $token"
+                    ]
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
 }
