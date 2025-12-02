@@ -463,10 +463,10 @@ class MfiService
 
 
 
-            $response = $this->client->get(
+            $response = $this->client->post(
                 $this->apiUrl . '/api/loan/validate',
                 [
-                    "query"=>[
+                    "form_params"=>[
                         "loan_application_id"=>$application_id,
                         "note"=>$note,
                         "account_number"=>$account_number,
@@ -496,10 +496,10 @@ class MfiService
 
 
 
-            $response = $this->client->get(
+            $response = $this->client->post(
                 $this->apiUrl . '/api/loan/reject',
                 [
-                    "query"=>[
+                    "form_params"=>[
                         "loan_application_id"=>$application_id,
                         "note"=>$note,
                         "account_number"=>$account_number,
