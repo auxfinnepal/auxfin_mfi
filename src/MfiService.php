@@ -305,7 +305,8 @@ class MfiService
                         "account_number" => $account_number,
                         "class" => $connection->class,
                         "from_date" => $from_date,
-                        "to_date" => $to_date
+                        "to_date" => $to_date,
+                        'mfi_id'=>$mfi_id
                     ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
