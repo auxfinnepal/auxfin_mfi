@@ -49,17 +49,17 @@ trait useMfi
         return $this->mfiService->linkMfi($mfi_id, $user_id, $account_number, $account_name, $phone_number);
     }
 
-    /**
+/**
      * @throws \Exception
      */
-    public function getBalance($account_number, $mfi_id)
+    public function getBalance($mfi_id, $account_number = null, $phone_number = null, $pin = null, $sacco = null)
     {
 
-        return $this->mfiService->getAccountBalance($account_number, $mfi_id);
+        return $this->mfiService->getAccountBalance($mfi_id, $account_number, $phone_number, $pin, $sacco);
     }
-    public function getMiniStatement(string $account_number, string $from_date, string $to_date, string $mfi_id)
+    public function getMiniStatement($mfi_id, $account_number = null, $from_date = null, $to_date = null, $phone_number = null, $pin = null, $sacco = null, $limit = null)
     {
-        return $this->mfiService->getMiniStatement($account_number, $from_date, $to_date, $mfi_id);
+        return $this->mfiService->getMiniStatement($mfi_id, $account_number, $from_date, $to_date, $phone_number, $pin, $sacco, $limit);
     }
     public function getLoanHistory(string $account_number, string $from_date, string $to_date, string $mfi_id)
     {
@@ -74,15 +74,15 @@ trait useMfi
     /**
      * @throws \Exception
      */
-    public function withDrawMfiAmount($account_number, $mfi_id, $amount)
+    public function withDrawMfiAmount($mfi_id, $amount, $account_number = null, $phone_number = null, $pin = null, $sacco = null, $otp_code = null)
     {
 
-        return $this->mfiService->withdrawAmount($account_number, $mfi_id, $amount);
+        return $this->mfiService->withdrawAmount($mfi_id, $amount, $account_number, $phone_number, $pin, $sacco, $otp_code);
     }
-    public function depositMfiAmount($account_number, $mfi_id, $amount)
+    public function depositMfiAmount($mfi_id, $amount, $account_number = null, $phone_number = null, $pin = null, $sacco = null)
     {
 
-        return $this->mfiService->depositAmount($account_number, $mfi_id, $amount);
+        return $this->mfiService->depositAmount($mfi_id, $amount, $account_number, $phone_number, $pin, $sacco);
     }
 
     public function applyLoanByMfi($mfi_id, $user_id, $purpose, $amount, $repayment_period, $requested_by, $account_number)
@@ -103,6 +103,21 @@ trait useMfi
     }
     public function rejectLoan($application_id,$note,$account_number){
         return $this->mfiService->rejectLoan($application_id,$note,$account_number);
+    }
+
+    public function login($mfi_id, $phone_number, $pin, $sacco)
+    {
+        return $this->mfiService->login($mfi_id, $phone_number, $pin, $sacco);
+    }
+
+    public function refreshToken($mfi_id, $refresh_token)
+    {
+        return $this->mfiService->refreshToken($mfi_id, $refresh_token);
+    }
+
+    public function getTransactionStatus($mfi_id, $phone_number, $pin, $sacco, $transaction_id)
+    {
+        return $this->mfiService->getTransactionStatus($mfi_id, $phone_number, $pin, $sacco, $transaction_id);
     }
 
 }

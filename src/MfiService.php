@@ -111,7 +111,7 @@ class MfiService
                 [
                     'query' => [
                         "group_name" => $group_name,
-//                        "class" => $connection->class,
+                        //                        "class" => $connection->class,
                         "mfi_id" => $mfi_id
                     ],
                     "headers" => [
@@ -154,137 +154,180 @@ class MfiService
         }
     }
 
-    public function getAccountBalance($account_number, $mfi_id)
-    {
+    public function getAccountBalance(
+        $mfi_id,
+        $account_number = null,
+        $phone_number = null,
+        $pin = null,
+        $sacco = null
+    ) {
+        $token = $this->getMfiToken();
 
-        try {
-            $token = $this->getMfiToken();
+        $connection = $this->checkConnection($mfi_id, 'getBalance');
 
-            $connection = $this->checkConnection($mfi_id, 'getBalance');
-
-            if (!$connection->class) {
-                throw new \Exception("method_not_found");
-            }
-
-            $response = $this->client->get(
-                $this->apiUrl . '/api/account_balance',
-                [
-                    'query' => [
-                        "account_number" => $account_number,
-                        "class" => $connection->class,
-                        "mfi_id" => $mfi_id
-                    ],
-                    "headers" => [
-                        "Authorization" => "Bearer $token"
-                    ]
-                ]
-            );
-
-            return json_decode($response->getBody()->getContents());
-        } catch (\Exception $e) {
-            throw $e;
+        if (empty($connection->class)) {
+            throw new \Exception("method_not_found");
         }
+
+        $baseQuery = [
+            'class'  => $connection->class,
+            'mfi_id' => $mfi_id,
+        ];
+
+        if (str_ends_with($connection->class, 'Ruhira')) {
+            $baseQuery += array_filter([
+                'phone_number' => $phone_number,
+                'pin'          => $pin,
+                'sacco'        => $sacco,
+            ]);
+        } else {
+            $baseQuery['account_number'] = $account_number;
+        }
+
+        $response = $this->client->get($this->apiUrl . '/api/account_balance', [
+            'query'   => $baseQuery,
+            'headers' => [
+                'Authorization' => "Bearer {$token}",
+            ],
+        ]);
+
+        return json_decode($response->getBody()->getContents());
     }
-    public function withdrawAmount($account_number, $mfi_id, $amount)
-    {
+    public function withdrawAmount(
+        $mfi_id,
+        $amount,
+        $account_number = null,
+        $phone_number = null,
+        $pin = null,
+        $sacco = null,
+        $otp_code = null
 
-        try {
-            $token = $this->getMfiToken();
+    ) {
 
-            $connection = $this->checkConnection($mfi_id, 'withdrawAmount');
+        $token = $this->getMfiToken();
+        $connection = $this->checkConnection($mfi_id, 'withdrawAmount');
+        if (empty($connection->class)) {
 
-
-            if (!$connection->class) {
-                throw new \Exception("method_not_found");
-            }
-
-            $response = $this->client->get(
-                $this->apiUrl . '/api/withdraw_amount',
-                [
-                    'query' => [
-                        "account_number" => $account_number,
-                        "class" => $connection->class,
-                        "mfi_id" => $mfi_id,
-                        "amount" => $amount
-                    ],
-                    "headers" => [
-                        "Authorization" => "Bearer $token"
-                    ]
-                ]
-            );
-
-            return json_decode($response->getBody()->getContents());
-        } catch (\Exception $e) {
-            throw $e;
+            throw new \Exception("method_not_found");
         }
-    }
+        $baseQuery = [
 
-    public function depositAmount($account_number, $mfi_id, $amount)
-    {
+            'class'  => $connection->class,
+            'mfi_id' => $mfi_id,
+            'amount' => $amount,
 
-        try {
-            $token = $this->getMfiToken();
+        ];
 
-            $connection = $this->checkConnection($mfi_id, 'depositAmount');
-
-
-            if (!$connection->class) {
-                throw new \Exception("method_not_found");
-            }
-
-            $response = $this->client->get(
-                $this->apiUrl . '/api/deposit_amount',
-                [
-                    'query' => [
-                        "account_number" => $account_number,
-                        "class" => $connection->class,
-                        "mfi_id" => $mfi_id,
-                        "amount" => $amount
-                    ],
-                    "headers" => [
-                        "Authorization" => "Bearer $token"
-                    ]
-                ]
-            );
-
-            return json_decode($response->getBody()->getContents());
-        } catch (\Exception $e) {
-            throw $e;
+        if (str_ends_with($connection->class, 'Ruhira')) {
+            $baseQuery += array_filter([
+                'phone_number' => $phone_number,
+                'pin'          => $pin,
+                'sacco'        => $sacco,
+                'otp_code'     => $otp_code,
+            ]);
+        } else {
+            $baseQuery += array_filter([
+                'account_number' => $account_number,
+            ]);
         }
-    }
-    public function getMiniStatement(string $account_number, string $from_date, string $to_date, string $mfi_id)
-    {
-        try {
-            $token = $this->getMfiToken();
+        $response = $this->client->get($this->apiUrl . '/api/withdraw_amount', [
+            'query' => $baseQuery,
+            'headers' => [
+                'Authorization' => "Bearer {$token}",
+            ],
 
-            $connection = $this->checkConnection($mfi_id, 'miniStatement');
-
-            if (!$connection->class) {
-                throw new \Exception("method_not_found");
-            }
-
-            $response = $this->client->get(
-                $this->apiUrl . '/api/mini_statement',
-                [
-                    'query' => [
-                        "account_number" => $account_number,
-                        "class" => $connection->class,
-                        'from_date' => $from_date,
-                        'to_date' => $to_date,
-                        'mfi_id'=>$mfi_id
-                    ],
-                    "headers" => [
-                        "Authorization" => "Bearer $token"
-                    ]
-                ]
-            );
-
-            return json_decode($response->getBody()->getContents());
-        } catch (\Exception $e) {
-            throw $e;
-        }
+        ]);
+        return json_decode($response->getBody()->getContents());
     }
 
+    public function depositAmount(
+        $mfi_id,
+        $amount,
+        $account_number = null,
+        $phone_number = null,
+        $pin = null,
+        $sacco = null
+    ) {
+        $token = $this->getMfiToken();
+
+        $connection = $this->checkConnection($mfi_id, 'depositAmount');
+
+        if (empty($connection->class)) {
+            throw new \Exception("method_not_found");
+        }
+
+        $baseQuery = [
+            'class'  => $connection->class,
+            'mfi_id' => $mfi_id,
+            'amount' => $amount,
+        ];
+
+        if (str_ends_with($connection->class, 'Ruhira')) {
+            $baseQuery += array_filter([
+                'phone_number' => $phone_number,
+                'pin'          => $pin,
+                'sacco'        => $sacco,
+            ]);
+        } else {
+            $baseQuery['account_number'] = $account_number;
+        }
+
+        $response = $this->client->get($this->apiUrl . '/api/deposit_amount', [
+            'query' => $baseQuery,
+            'headers' => [
+                'Authorization' => "Bearer {$token}",
+            ],
+        ]);
+
+        return json_decode($response->getBody()->getContents());
+    }
+    public function getMiniStatement(
+        $mfi_id,
+        $account_number = null,
+        $from_date = null,
+        $to_date = null,
+        $phone_number = null,
+        $pin = null,
+        $sacco = null,
+        $limit = null
+    ) {
+        $token = $this->getMfiToken();
+
+        $connection = $this->checkConnection($mfi_id, 'miniStatement');
+
+        if (empty($connection->class)) {
+            throw new \Exception("method_not_found");
+        }
+
+        $baseQuery = [
+            'class'  => $connection->class,
+            'mfi_id' => $mfi_id,
+        ];
+
+        if (str_ends_with($connection->class, 'Ruhira')) {
+            $baseQuery += array_filter([
+                'phone_number' => $phone_number,
+                'pin'          => $pin,
+                'sacco'        => $sacco,
+                'limit'        => $limit ?? 5,
+            ]);
+        } else {
+            $baseQuery += array_filter([
+                'account_number' => $account_number,
+                'from_date'      => $from_date,
+                'to_date'        => $to_date,
+            ]);
+        }
+
+        $response = $this->client->get($this->apiUrl . '/api/mini_statement', [
+            'query' => $baseQuery,
+            'headers' => [
+                'Authorization' => "Bearer {$token}",
+            ],
+        ]);
+
+        return json_decode($response->getBody()->getContents());
+    }
     public function getLoanHistory(string $account_number, string $from_date, string $to_date, string $mfi_id)
     {
         try {
@@ -306,7 +349,7 @@ class MfiService
                         "class" => $connection->class,
                         "from_date" => $from_date,
                         "to_date" => $to_date,
-                        'mfi_id'=>$mfi_id
+                        'mfi_id' => $mfi_id
                     ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
@@ -318,7 +361,6 @@ class MfiService
         } catch (\Exception $e) {
             throw $e;
         }
-
     }
 
     public function applyLoan($mfi_id, $user_id, $purpose, $amount, $repayment_period, $requested_by, $account_number)
@@ -414,11 +456,10 @@ class MfiService
             $response = $this->client->get(
                 $this->apiUrl . '/api/loan/list_application',
                 [
-                    "query"=>[
-                        "mfi_id"=>$mfi_id,
-                        "user_id"=>$user_id
-                    ]
-                    ,
+                    "query" => [
+                        "mfi_id" => $mfi_id,
+                        "user_id" => $user_id
+                    ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
                     ]
@@ -441,11 +482,10 @@ class MfiService
             $response = $this->client->get(
                 $this->apiUrl . '/api/loan/list_loan',
                 [
-                    "query"=>[
-                        "mfi_id"=>$mfi_id,
-                        "user_id"=>$user_id
-                    ]
-                    ,
+                    "query" => [
+                        "mfi_id" => $mfi_id,
+                        "user_id" => $user_id
+                    ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
                     ]
@@ -458,7 +498,7 @@ class MfiService
         }
     }
 
-    public function validateLoan($mfi_id, $user_id,$amount,$application_id,$note,$repayment_period,$interest_rate,$account_number)
+    public function validateLoan($mfi_id, $user_id, $amount, $application_id, $note, $repayment_period, $interest_rate, $account_number)
     {
         try {
             $token = $this->getMfiToken();
@@ -468,18 +508,17 @@ class MfiService
             $response = $this->client->post(
                 $this->apiUrl . '/api/loan/validate',
                 [
-                    "form_params"=>[
-                        "loan_application_id"=>$application_id,
-                        "note"=>$note,
-                        "account_number"=>$account_number,
-                        "amount"=>$amount,
-                        "interest_rate"=>$interest_rate,
-                        "repayment_period"=>$repayment_period,
-                        "user_id"=>$user_id,
-                        "mfi_id"=>$mfi_id
+                    "form_params" => [
+                        "loan_application_id" => $application_id,
+                        "note" => $note,
+                        "account_number" => $account_number,
+                        "amount" => $amount,
+                        "interest_rate" => $interest_rate,
+                        "repayment_period" => $repayment_period,
+                        "user_id" => $user_id,
+                        "mfi_id" => $mfi_id
 
-                    ]
-                    ,
+                    ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
                     ]
@@ -491,7 +530,7 @@ class MfiService
             throw $e;
         }
     }
-    public function rejectLoan($application_id,$note,$account_number)
+    public function rejectLoan($application_id, $note, $account_number)
     {
         try {
             $token = $this->getMfiToken();
@@ -501,13 +540,110 @@ class MfiService
             $response = $this->client->post(
                 $this->apiUrl . '/api/loan/reject',
                 [
-                    "form_params"=>[
-                        "loan_application_id"=>$application_id,
-                        "note"=>$note,
-                        "account_number"=>$account_number,
+                    "form_params" => [
+                        "loan_application_id" => $application_id,
+                        "note" => $note,
+                        "account_number" => $account_number,
 
+                    ],
+                    "headers" => [
+                        "Authorization" => "Bearer $token"
                     ]
-                    ,
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function login($mfi_id, $phone_number, $pin, $sacco)
+    {
+        try {
+            $token = $this->getMfiToken();
+
+            $connection = $this->checkConnection($mfi_id, 'login');
+
+            if (!$connection->class) {
+                throw new \Exception("method_not_found");
+            }
+
+            $response = $this->client->post(
+                $this->apiUrl . '/api/login',
+                [
+                    'form_params' => [
+                        "phone_number" => $phone_number,
+                        "pin" => $pin,
+                        "sacco" => $sacco,
+                        "class" => $connection->class,
+                        "mfi_id" => $mfi_id
+                    ],
+                    "headers" => [
+                        "Authorization" => "Bearer $token"
+                    ]
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function refreshToken($mfi_id, $refresh_token)
+    {
+        try {
+            $token = $this->getMfiToken();
+
+            $connection = $this->checkConnection($mfi_id, 'refreshToken');
+
+            if (!$connection->class) {
+                throw new \Exception("method_not_found");
+            }
+
+            $response = $this->client->post(
+                $this->apiUrl . '/api/refresh_token',
+                [
+                    'form_params' => [
+                        "refresh_token" => $refresh_token,
+                        "class" => $connection->class,
+                        "mfi_id" => $mfi_id
+                    ],
+                    "headers" => [
+                        "Authorization" => "Bearer $token"
+                    ]
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function getTransactionStatus($mfi_id, $phone_number, $pin, $sacco, $transaction_id)
+    {
+        try {
+            $token = $this->getMfiToken();
+
+            $connection = $this->checkConnection($mfi_id, 'transactionStatus');
+
+            if (!$connection->class) {
+                throw new \Exception("method_not_found");
+            }
+
+            $response = $this->client->post(
+                $this->apiUrl . '/api/transaction/status',
+                [
+                    'form_params' => [
+                        "phone_number" => $phone_number,
+                        "pin" => $pin,
+                        "sacco" => $sacco,
+                        "transaction_id" => $transaction_id,
+                        "class" => $connection->class,
+                        "mfi_id" => $mfi_id
+                    ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
                     ]
