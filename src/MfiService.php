@@ -240,7 +240,7 @@ class MfiService
     ) {
         $token = $this->getMfiToken();
 
-        $connection = $this->checkConnection($mfi_id, 'depositAmount');
+        $connection = $this->checkConnection($mfi_id, 'depositIn');
 
         if (empty($connection->class)) {
             throw new \Exception("method_not_found");
