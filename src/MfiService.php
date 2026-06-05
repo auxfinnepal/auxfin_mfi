@@ -157,9 +157,7 @@ class MfiService
     public function getAccountBalance(
         $mfi_id,
         $account_number = null,
-        $phone_number = null,
         $pin = null,
-        $sacco = null
     ) {
         $token = $this->getMfiToken();
 
@@ -176,9 +174,7 @@ class MfiService
 
         if (str_ends_with($connection->class, 'Ruhira')) {
             $baseQuery += array_filter([
-                'phone_number' => $phone_number,
                 'pin'          => $pin,
-                'sacco'        => $sacco,
             ]);
         } else {
             $baseQuery['account_number'] = $account_number;
@@ -197,9 +193,7 @@ class MfiService
         $mfi_id,
         $amount,
         $account_number = null,
-        $phone_number = null,
         $pin = null,
-        $sacco = null,
         $otp_code = null
 
     ) {
@@ -220,9 +214,7 @@ class MfiService
 
         if (str_ends_with($connection->class, 'Ruhira')) {
             $baseQuery += array_filter([
-                'phone_number' => $phone_number,
                 'pin'          => $pin,
-                'sacco'        => $sacco,
                 'otp_code'     => $otp_code,
             ]);
         } else {
@@ -244,9 +236,7 @@ class MfiService
         $mfi_id,
         $amount,
         $account_number = null,
-        $phone_number = null,
         $pin = null,
-        $sacco = null
     ) {
         $token = $this->getMfiToken();
 
@@ -263,11 +253,7 @@ class MfiService
         ];
 
         if (str_ends_with($connection->class, 'Ruhira')) {
-            $baseQuery += array_filter([
-                'phone_number' => $phone_number,
-                'pin'          => $pin,
-                'sacco'        => $sacco,
-            ]);
+            $baseQuery['pin'] = $pin;
         } else {
             $baseQuery['account_number'] = $account_number;
         }
@@ -286,9 +272,7 @@ class MfiService
         $account_number = null,
         $from_date = null,
         $to_date = null,
-        $phone_number = null,
         $pin = null,
-        $sacco = null,
         $limit = null
     ) {
         $token = $this->getMfiToken();
@@ -306,9 +290,7 @@ class MfiService
 
         if (str_ends_with($connection->class, 'Ruhira')) {
             $baseQuery += array_filter([
-                'phone_number' => $phone_number,
                 'pin'          => $pin,
-                'sacco'        => $sacco,
                 'limit'        => $limit ?? 5,
             ]);
         } else {
@@ -558,7 +540,7 @@ class MfiService
         }
     }
 
-    public function login($mfi_id, $phone_number, $pin, $sacco)
+    public function login($mfi_id, $pin)
     {
         try {
             $token = $this->getMfiToken();
@@ -573,9 +555,7 @@ class MfiService
                 $this->apiUrl . '/api/login',
                 [
                     'form_params' => [
-                        "phone_number" => $phone_number,
                         "pin" => $pin,
-                        "sacco" => $sacco,
                         "class" => $connection->class,
                         "mfi_id" => $mfi_id
                     ],
@@ -622,7 +602,7 @@ class MfiService
         }
     }
 
-    public function getTransactionStatus($mfi_id, $phone_number, $pin, $sacco, $transaction_id)
+    public function getTransactionStatus($mfi_id, $pin,  $transaction_id)
     {
         try {
             $token = $this->getMfiToken();
@@ -637,9 +617,7 @@ class MfiService
                 $this->apiUrl . '/api/transaction/status',
                 [
                     'form_params' => [
-                        "phone_number" => $phone_number,
                         "pin" => $pin,
-                        "sacco" => $sacco,
                         "transaction_id" => $transaction_id,
                         "class" => $connection->class,
                         "mfi_id" => $mfi_id
