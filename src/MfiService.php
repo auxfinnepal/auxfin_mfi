@@ -420,7 +420,7 @@ class MfiService
                 $newToken = json_decode((string)$response->getBody(), true);
                 $token = $newToken['access_token'];
                 $expires_in = $newToken['expires_in'];
-                $ssoToken = SsoToken::create(['access_token' => $token, 'expires_in' => Carbon::now()->addSeconds($expires_in), 'product_name' => 'Mfi', 'refresh_token' => $newToken['refresh_token']]);
+                $ssoToken = SsoToken::create(['access_token' => $token, 'expires_in' => Carbon::now()->addSeconds($expires_in), 'product_name' => 'Mfi', 'refresh_token' => $newToken['refresh_token']??null]);
             }
 
             return $ssoToken->access_token;
