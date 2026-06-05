@@ -222,7 +222,7 @@ class MfiService
                 'account_number' => $account_number,
             ]);
         }
-        $response = $this->client->get($this->apiUrl . '/api/withdraw_amount', [
+        $response = $this->client->post($this->apiUrl . '/api/withdraw_amount', [
             'query' => $baseQuery,
             'headers' => [
                 'Authorization' => "Bearer {$token}",
@@ -258,7 +258,7 @@ class MfiService
             $baseQuery['account_number'] = $account_number;
         }
 
-        $response = $this->client->get($this->apiUrl . '/api/deposit_amount', [
+        $response = $this->client->post($this->apiUrl . '/api/deposit_amount', [
             'query' => $baseQuery,
             'headers' => [
                 'Authorization' => "Bearer {$token}",
