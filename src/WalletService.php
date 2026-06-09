@@ -3,6 +3,7 @@
 namespace Auxfin\Mfi;
 
 use GuzzleHttp\Client;
+use Exception;
 
 class WalletService
 {
@@ -14,7 +15,6 @@ class WalletService
     {
         $this->client = new Client();
         $this->apiUrl = config('mfi.api');
-        $this->mfiService=new MfiService();
     }
 
 
@@ -41,9 +41,8 @@ class WalletService
             throw $e;
         }
     }
-    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark)
+    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin = null)
     {
-
         try {
             $token = $this->mfiService->getMfiToken();
 
@@ -53,22 +52,20 @@ class WalletService
                 $connection = $this->mfiService->checkConnection($mfi_id, 'transaction');
             }
 
-
             $response = $this->client->post(
                 $this->apiUrl . '/api/wallet/transfer',
                 [
                     'form_params' => [
-
                         "user_id" => $user_id,
-                        "wallet_id" => $wallet_id,
+                        "wallet_id" => $wallet_id ?? null,
                         "amount" => $amount,
                         "mfi_id" => $mfi_id,
                         "class" => $connection->class ?? null,
                         "transaction_type" => $transaction_type,
-                        "to_user_id"=>$to_user_id ?? null,
-                        "account_number"=>$account,
-                        "remark"=>$remark,
-
+                        "to_user_id" => $to_user_id ?? null,
+                        "account_number" => $account ?? null,
+                        "remark" => $remark ?? null,
+                        "pin" => $pin,
                     ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
@@ -77,10 +74,10 @@ class WalletService
             );
             return json_decode($response->getBody()->getContents());
         } catch (\Exception $e) {
-
             throw $e;
         }
     }
+
     public function getWalletTransactions($from_date, $to_date, $user_id, $wallet_id)
     {
         try {
