@@ -24,15 +24,15 @@ trait useWallet
 
     }
 
-    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark)
+    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin = null)
     {
         try {
-
-            return $this->walletService->transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark);
+            return $this->walletService->transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin);
         } catch (\Exception $e) {
             throw $e;
         }
     }
+
 
     public function getWalletTransactionsData($from_date, $to_date, $user_id, $wallet_id)
     {
