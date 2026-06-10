@@ -42,7 +42,7 @@ class WalletService
             throw $e;
         }
     }
-    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin = null)
+    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin = null,$otp = null)
     {
         try {
             $token = $this->mfiService->getMfiToken();
@@ -67,6 +67,7 @@ class WalletService
                         "account_number" => $account ?? null,
                         "remark" => $remark ?? null,
                         "pin" => $pin,
+                        "otp" => $otp
                     ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
