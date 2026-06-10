@@ -24,10 +24,10 @@ trait useWallet
 
     }
 
-    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin = null)
+    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin = null,$otp = null)
     {
         try {
-            return $this->walletService->transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin);
+            return $this->walletService->transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin, $otp);
         } catch (\Exception $e) {
             throw $e;
         }
