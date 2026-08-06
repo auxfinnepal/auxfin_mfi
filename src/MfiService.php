@@ -172,7 +172,7 @@ class MfiService
             'mfi_id' => $mfi_id,
         ];
 
-        if (str_ends_with($connection->class, 'Ruhira')) {
+        if (str_ends_with($connection->class, 'Ruhiira')) {
             $baseQuery += array_filter([
                 'pin'          => $pin,
             ]);
