@@ -199,7 +199,7 @@ class MfiService
     ) {
 
         $token = $this->getMfiToken();
-        $connection = $this->checkConnection($mfi_id, 'withdraw');
+        $connection = $this->checkConnection($mfi_id, 'withdrawAmount');
         if (empty($connection->class)) {
 
             throw new \Exception("method_not_found");

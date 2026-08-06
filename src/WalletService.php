@@ -49,9 +49,9 @@ class WalletService
 
             $connection = null;
 
-            if ($mfi_id) {
-                $connection = $this->mfiService->checkConnection($mfi_id, 'transaction');
-            }
+//            if ($mfi_id) {
+//                $connection = $this->mfiService->checkConnection($mfi_id, 'transaction');
+//            }
 
             $response = $this->client->post(
                 $this->apiUrl . '/api/wallet/transfer',
