@@ -212,10 +212,10 @@ class MfiService
 
         ];
 
-        if (str_ends_with($connection->class, 'Ruhira')) {
+        if (str_ends_with($connection->class, 'Ruhiira')) {
             $baseQuery += array_filter([
                 'pin'          => $pin,
-                'otp_code'     => $otp_code,
+                'otp'     => $otp_code,
             ]);
         } else {
             $baseQuery += array_filter([
@@ -240,7 +240,7 @@ class MfiService
     ) {
         $token = $this->getMfiToken();
 
-        $connection = $this->checkConnection($mfi_id, 'depositIn');
+        $connection = $this->checkConnection($mfi_id, 'depositAmount');
 
         if (empty($connection->class)) {
             throw new \Exception("method_not_found");
@@ -252,7 +252,7 @@ class MfiService
             'amount' => $amount,
         ];
 
-        if (str_ends_with($connection->class, 'Ruhira')) {
+        if (str_ends_with($connection->class, 'Ruhiira')) {
             $baseQuery['pin'] = $pin;
         } else {
             $baseQuery['account_number'] = $account_number;
@@ -288,7 +288,7 @@ class MfiService
             'mfi_id' => $mfi_id,
         ];
 
-        if (str_ends_with($connection->class, 'Ruhira')) {
+        if (str_ends_with($connection->class, 'Ruhiira')) {
             $baseQuery += array_filter([
                 'pin'          => $pin,
                 'limit'        => $limit ?? 5,
