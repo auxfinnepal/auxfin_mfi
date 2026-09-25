@@ -18,9 +18,14 @@ trait useMfi
         $this->otpService = new OtpService();
     }
 
-    public function listMfi(string $country, bool $status)
+    public function listMfi(?string $country, ?bool $status)
     {
         return $this->mfiService->listMfi($country, $status);
+    }
+
+    public function updateMfi(string $mfiId, array $data)
+    {
+        return $this->mfiService->updateMfi($mfiId, $data);
     }
 
     public function getConnected(string $mfi_id, string $user_id, string $type = null)
@@ -103,6 +108,40 @@ trait useMfi
     }
     public function rejectLoan($application_id,$note,$account_number){
         return $this->mfiService->rejectLoan($application_id,$note,$account_number);
+    }
+
+    /**
+     * Get transaction charge for an MFI and amount.
+     *
+     * @param int $mfiId
+     * @param float $amount
+     * @param string|null $transactionType
+     * @return object Charge info with charge_type, charge_amount, charge_id, gross_amount, net_amount
+     * @throws \Exception
+     */
+    public function getTransactionCharge(int $mfiId, float $amount, ?string $transactionType = null)
+    {
+        return $this->mfiService->getTransactionCharge($mfiId, $amount, $transactionType);
+    }
+
+    public function listTransactionCharges(?int $mfiId = null)
+    {
+        return $this->mfiService->listTransactionCharges($mfiId);
+    }
+
+    public function createTransactionCharge(int $mfiId, array $data)
+    {
+        return $this->mfiService->createTransactionCharge($mfiId, $data);
+    }
+
+    public function updateTransactionCharge(int $mfiId, int $chargeId, array $data)
+    {
+        return $this->mfiService->updateTransactionCharge($mfiId, $chargeId, $data);
+    }
+
+    public function deleteTransactionCharge(int $mfiId, int $chargeId)
+    {
+        return $this->mfiService->deleteTransactionCharge($mfiId, $chargeId);
     }
 
 }

@@ -2,6 +2,7 @@
 
 namespace Auxfin\Mfi;
 
+use Auxfin\Mfi\SmsGatewayService;
 use Illuminate\Support\ServiceProvider;
 use Nuwave\Lighthouse\Schema\Source\SchemaStitcher;
 
@@ -23,6 +24,16 @@ class MfiServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../config/mfi.php' => config_path('mfi.php'),
             ], 'mfi-config');
+
+            //Publish Migrations
+            $this->publishes([
+                __DIR__ . '/../database/migrations/' => database_path('migrations'),
+            ], 'mfi-migrations');
+
+            //Register Services
+            $this->app->singleton(SmsGatewayService::class, function ($app) {
+                return new SmsGatewayService();
+            });
 
 //            $dispatcher = app(\Illuminate\Contracts\Events\Dispatcher::class);
 //            $dispatcher->listen(

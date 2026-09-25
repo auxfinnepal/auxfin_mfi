@@ -17,7 +17,7 @@ class MfiService
         $this->apiUrl = config('mfi.api');
     }
 
-    public function listMfi(string $country, bool $status)
+    public function listMfi(?string $country, ?bool $status)
     {
         try {
             $token = $this->getMfiToken();
@@ -27,7 +27,8 @@ class MfiService
                 [
                     'query' => [
                         "country" => $country,
-                        "enabled" => $status
+                        "enabled" => $status,
+                        "per_page" => 100,
                     ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
@@ -38,6 +39,116 @@ class MfiService
             return json_decode($response->getBody()->getContents());
         } catch (\Exception $e) {
             throw $e;
+        }
+    }
+
+    public function updateMfi(string $mfiId, array $data)
+    {
+        $token = $this->getMfiToken();
+        $response = $this->client->put(
+            $this->apiUrl . '/api/mfi/' . $mfiId,
+            [
+                'json' => $data,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        return json_decode($response->getBody()->getContents());
+    }
+
+    public function listTransactionCharges(?int $mfiId = null)
+    {
+        $endpoint = $mfiId
+            ? "/api/mfi/{$mfiId}/transaction-charges"
+            : "/api/transaction-charges";
+
+        try {
+            $response = $this->client->get($this->apiUrl . $endpoint, [
+                'headers' => ['Authorization' => 'Bearer ' . $this->getMfiToken()],
+            ]);
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to list transaction charges from MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function createTransactionCharge(int $mfiId, array $data)
+    {
+        try {
+            $response = $this->client->post($this->apiUrl . "/api/mfi/{$mfiId}/transaction-charges", [
+                'json' => $data,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                    'Content-Type' => 'application/json',
+                ],
+            ]);
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to create transaction charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function updateTransactionCharge(int $mfiId, int $chargeId, array $data)
+    {
+        try {
+            $response = $this->client->put(
+                $this->apiUrl . "/api/mfi/{$mfiId}/transaction-charges/{$chargeId}",
+                [
+                    'json' => $data,
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to update transaction charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function deleteTransactionCharge(int $mfiId, int $chargeId)
+    {
+        try {
+            $response = $this->client->delete(
+                $this->apiUrl . "/api/mfi/{$mfiId}/transaction-charges/{$chargeId}",
+                [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to delete transaction charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
         }
     }
 
@@ -511,6 +622,34 @@ class MfiService
                     "headers" => [
                         "Authorization" => "Bearer $token"
                     ]
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function getTransactionCharge(int $mfiId, float $amount, ?string $transactionType = null)
+    {
+        try {
+            $token = $this->getMfiToken();
+
+            $query = [
+                'amount' => $amount,
+            ];
+            if ($transactionType !== null) {
+                $query['transaction_type'] = $transactionType;
+            }
+
+            $response = $this->client->get(
+                $this->apiUrl . "/api/mfi/$mfiId/transaction-charge",
+                [
+                    'query' => $query,
+                    'headers' => [
+                        'Authorization' => "Bearer $token",
+                    ],
                 ]
             );
 
