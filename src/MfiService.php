@@ -45,10 +45,26 @@ class MfiService
     public function updateMfi(string $mfiId, array $data)
     {
         $token = $this->getMfiToken();
-        $response = $this->client->put(
+
+        $existingResponse = $this->client->get(
             $this->apiUrl . '/api/mfi/' . $mfiId,
             [
-                'json' => $data,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                ],
+            ]
+        );
+        $existing = json_decode($existingResponse->getBody()->getContents(), true);
+
+        $payload = array_filter(array_merge([
+            'name' => $existing['name'] ?? null,
+            'country' => $existing['country'] ?? null,
+        ], $data), fn ($value) => $value !== null);
+
+        $response = $this->client->post(
+            $this->apiUrl . '/api/mfi/upsert',
+            [
+                'json' => $payload,
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,
                     'Content-Type' => 'application/json',
