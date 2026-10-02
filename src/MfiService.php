@@ -59,6 +59,39 @@ class MfiService
         return json_decode($response->getBody()->getContents());
     }
 
+    public function createMfi(array $data)
+    {
+        $token = $this->getMfiToken();
+        $response = $this->client->post(
+            $this->apiUrl . '/api/mfi',
+            [
+                'json' => $data,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        return json_decode($response->getBody()->getContents());
+    }
+
+    public function deleteMfi(string $mfiId)
+    {
+        $token = $this->getMfiToken();
+        $response = $this->client->delete(
+            $this->apiUrl . '/api/mfi/' . $mfiId,
+            [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        return json_decode($response->getBody()->getContents());
+    }
+
     public function listTransactionCharges(?int $mfiId = null)
     {
         $endpoint = $mfiId
