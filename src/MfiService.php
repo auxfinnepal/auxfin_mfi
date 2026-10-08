@@ -14,7 +14,7 @@ class MfiService
     public function __construct()
     {
         $this->client = new Client();
-        $this->apiUrl = config('mfi.api');
+        $this->apiUrl = trim(config('mfi.api'));
     }
 
     public function listMfi(string $country, bool $status)
