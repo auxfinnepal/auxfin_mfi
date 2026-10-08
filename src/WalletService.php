@@ -14,7 +14,7 @@ class WalletService
     public function __construct()
     {
         $this->client = new Client();
-        $this->apiUrl = config('mfi.api');
+        $this->apiUrl = trim(config('mfi.api'));
         $this->mfiService = new MfiService();
     }
 
