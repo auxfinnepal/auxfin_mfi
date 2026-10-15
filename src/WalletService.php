@@ -41,7 +41,7 @@ class WalletService
             throw $e;
         }
     }
-    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark)
+    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin = null, $otp = null, $charge = 0)
     {
 
         try {
@@ -62,12 +62,15 @@ class WalletService
                         "user_id" => $user_id,
                         "wallet_id" => $wallet_id,
                         "amount" => $amount,
+                        "charge" => $charge,
                         "mfi_id" => $mfi_id,
                         "class" => $connection->class ?? null,
                         "transaction_type" => $transaction_type,
                         "to_user_id"=>$to_user_id ?? null,
                         "account_number"=>$account,
                         "remark"=>$remark,
+                        "pin"=>$pin,
+                        "otp"=>$otp,
 
                     ],
                     "headers" => [

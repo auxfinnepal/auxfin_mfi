@@ -707,4 +707,471 @@ class MfiService
             throw $e;
         }
     }
+
+    public function listTransactionChargeRecords(?int $mfiId = null, array $filters = []): array
+    {
+        $endpoint = $mfiId
+            ? "/api/mfi/{$mfiId}/transaction-charge-records"
+            : "/api/transaction-charge-records";
+
+        try {
+            $queryParams = $filters;
+            $response = $this->client->get($this->apiUrl . $endpoint, [
+                'query' => $queryParams,
+                'headers' => ['Authorization' => 'Bearer ' . $this->getMfiToken()],
+            ]);
+
+            $decoded = json_decode($response->getBody()->getContents(), true);
+            // Returns paginated response: ['data' => [...], 'current_page' => ..., 'total' => ..., 'links' => ..., 'meta' => ...]
+            return is_array($decoded) ? $decoded : (array)$decoded;
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to list transaction charge records from MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    // SMS Gateway Charges (Amount-Based)
+
+    public function listSmsGatewayChargesAmount(int $mfiId, int $smsGatewayId)
+    {
+        try {
+            $response = $this->client->get(
+                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/charges-amount",
+                [
+                    'headers' => ['Authorization' => 'Bearer ' . $this->getMfiToken()],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to list SMS gateway charges from MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function createSmsGatewayChargeAmount(?int $organizationId, int $mfiId, int $smsGatewayId, array $data)
+    {
+        $data['organization_id'] = $organizationId;
+        
+        try {
+            $response = $this->client->post(
+                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/charges-amount",
+                [
+                    'json' => $data,
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to create SMS gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function updateSmsGatewayChargeAmount(int $mfiId, int $smsGatewayId, int $chargeId, array $data)
+    {
+        try {
+            $response = $this->client->put(
+                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/charges-amount/{$chargeId}",
+                [
+                    'json' => $data,
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to update SMS gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function deleteSmsGatewayChargeAmount(int $mfiId, int $smsGatewayId, int $chargeId)
+    {
+        try {
+            $response = $this->client->delete(
+                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/charges-amount/{$chargeId}",
+                [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to delete SMS gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function toggleSmsGatewayChargeAmount(int $mfiId, int $smsGatewayId, int $chargeId)
+    {
+        try {
+            $response = $this->client->post(
+                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/charges-amount/{$chargeId}/toggle",
+                [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to toggle SMS gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function calculateSmsGatewayCharge(?int $organizationId, int $mfiId, int $smsGatewayId, float $amount)
+    {
+        try {
+            $response = $this->client->post(
+                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/calculate-charge",
+                [
+                    'json' => [
+                        'organization_id' => $organizationId,
+                        'amount' => $amount,
+                    ],
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to calculate SMS gateway charge from MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    // Payment Gateways
+
+    public function listPaymentGateways()
+    {
+        try {
+            $response = $this->client->get(
+                $this->apiUrl . '/api/payment-gateways',
+                [
+                    'headers' => ['Authorization' => 'Bearer ' . $this->getMfiToken()],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to list payment gateways from MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function getPaymentGateway(int $id)
+    {
+        try {
+            $response = $this->client->get(
+                $this->apiUrl . "/api/payment-gateways/{$id}",
+                [
+                    'headers' => ['Authorization' => 'Bearer ' . $this->getMfiToken()],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to get payment gateway from MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function createPaymentGateway(array $data)
+    {
+        try {
+            $response = $this->client->post(
+                $this->apiUrl . '/api/payment-gateways',
+                [
+                    'json' => $data,
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to create payment gateway in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function updatePaymentGateway(int $id, array $data)
+    {
+        try {
+            $response = $this->client->put(
+                $this->apiUrl . "/api/payment-gateways/{$id}",
+                [
+                    'json' => $data,
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to update payment gateway in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function deletePaymentGateway(int $id)
+    {
+        try {
+            $response = $this->client->delete(
+                $this->apiUrl . "/api/payment-gateways/{$id}",
+                [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to delete payment gateway in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function togglePaymentGateway(int $id)
+    {
+        try {
+            $response = $this->client->post(
+                $this->apiUrl . "/api/payment-gateways/{$id}/toggle",
+                [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to toggle payment gateway in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    // Payment Gateway Charges
+
+    public function listPaymentGatewayCharges(int $mfiId, int $paymentGatewayId)
+    {
+        try {
+            $response = $this->client->get(
+                $this->apiUrl . "/api/mfi/{$mfiId}/payment-gateway/{$paymentGatewayId}/charges",
+                [
+                    'headers' => ['Authorization' => 'Bearer ' . $this->getMfiToken()],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to list payment gateway charges from MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function createPaymentGatewayCharge(?int $organizationId, int $mfiId, int $paymentGatewayId, array $data)
+    {
+        $data['organization_id'] = $organizationId;
+        
+        try {
+            $response = $this->client->post(
+                $this->apiUrl . "/api/mfi/{$mfiId}/payment-gateway/{$paymentGatewayId}/charges",
+                [
+                    'json' => $data,
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to create payment gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function updatePaymentGatewayCharge(int $mfiId, int $paymentGatewayId, int $chargeId, array $data)
+    {
+        try {
+            $response = $this->client->put(
+                $this->apiUrl . "/api/mfi/{$mfiId}/payment-gateway/{$paymentGatewayId}/charges/{$chargeId}",
+                [
+                    'json' => $data,
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to update payment gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function deletePaymentGatewayCharge(int $mfiId, int $paymentGatewayId, int $chargeId)
+    {
+        try {
+            $response = $this->client->delete(
+                $this->apiUrl . "/api/mfi/{$mfiId}/payment-gateway/{$paymentGatewayId}/charges/{$chargeId}",
+                [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to delete payment gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function togglePaymentGatewayCharge(int $mfiId, int $paymentGatewayId, int $chargeId)
+    {
+        try {
+            $response = $this->client->post(
+                $this->apiUrl . "/api/mfi/{$mfiId}/payment-gateway/{$paymentGatewayId}/charges/{$chargeId}/toggle",
+                [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to toggle payment gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
+
+    public function calculatePaymentGatewayCharge(?int $organizationId, int $mfiId, int $paymentGatewayId, float $amount)
+    {
+        try {
+            $response = $this->client->post(
+                $this->apiUrl . "/api/mfi/{$mfiId}/payment-gateway/{$paymentGatewayId}/calculate-charge",
+                [
+                    'json' => [
+                        'organization_id' => $organizationId,
+                        'amount' => $amount,
+                    ],
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            $body = $exception->getResponse()?->getBody()->getContents();
+            throw new \RuntimeException(
+                'Unable to calculate payment gateway charge from MFI service: ' . ($body ?: $exception->getMessage()),
+                (int) $exception->getCode(),
+                $exception
+            );
+        }
+    }
 }

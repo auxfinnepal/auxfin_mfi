@@ -144,4 +144,16 @@ trait useMfi
         return $this->mfiService->deleteTransactionCharge($mfiId, $chargeId);
     }
 
+    /**
+     * Get transaction charge records for an MFI or globally.
+     *
+     * @param int|null $mfiId Optional MFI ID to filter by; if omitted, returns all records
+     * @param array $filters Optional filters: user_id, from_date (Y-m-d), to_date (Y-m-d), per_page
+     * @return array Paginated response with data, current_page, total, links, and meta fields
+     */
+    public function getTransactionChargeRecords(?int $mfiId = null, array $filters = []): array
+    {
+        return $this->mfiService->listTransactionChargeRecords($mfiId, $filters);
+    }
+
 }
