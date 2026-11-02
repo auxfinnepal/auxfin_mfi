@@ -218,7 +218,7 @@ class MfiService
 
         ];
 
-        if (str_ends_with($connection->class, 'Ruhira')) {
+        if (str_ends_with($connection->class, 'Ruhiira')) {
             $baseQuery += array_filter([
                 'phone_number' => $phone_number,
                 'pin'          => $pin,
@@ -262,7 +262,7 @@ class MfiService
             'amount' => $amount,
         ];
 
-        if (str_ends_with($connection->class, 'Ruhira')) {
+        if (str_ends_with($connection->class, 'Ruhiira')) {
             $baseQuery += array_filter([
                 'phone_number' => $phone_number,
                 'pin'          => $pin,
@@ -304,7 +304,7 @@ class MfiService
             'mfi_id' => $mfi_id,
         ];
 
-        if (str_ends_with($connection->class, 'Ruhira')) {
+        if (str_ends_with($connection->class, 'Ruhiira')) {
             $baseQuery += array_filter([
                 'phone_number' => $phone_number,
                 'pin'          => $pin,
