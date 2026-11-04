@@ -24,11 +24,41 @@ trait useWallet
 
     }
 
-    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin = null, $otp = null, $charge = 0)
-    {
+    /**
+     * Process wallet transaction
+     *
+     * @param int|null $userId User ID (optional if walletId provided)
+     * @param int|null $walletId Wallet ID (optional if userId provided)
+     * @param int|null $mfiId MFI ID for charge calculation
+     * @param float $amount Transaction amount
+     * @param string $transactionType Transaction type (e.g., wallet_to_wallet, wallet_to_mfi)
+     * @param int|null $toUserId Recipient user ID (optional if toWalletId provided)
+     * @param int|null $toWalletId Recipient wallet ID (optional if toUserId provided)
+     * @param float|null $charge Manual charge amount (optional)
+     * @return mixed Transaction result
+     * @throws \Exception
+     */
+    public function transaction(
+        ?int $userId,
+        ?int $walletId,
+        ?int $mfiId,
+        float $amount,
+        string $transactionType,
+        ?int $toUserId = null,
+        ?int $toWalletId = null,
+        ?float $charge = 0
+    ) {
         try {
-
-            return $this->walletService->transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin, $otp, $charge);
+            return $this->walletService->transaction(
+                $userId,
+                $walletId,
+                $mfiId,
+                $amount,
+                $transactionType,
+                $toUserId,
+                $toWalletId,
+                $charge
+            );
         } catch (\Exception $e) {
             throw $e;
         }

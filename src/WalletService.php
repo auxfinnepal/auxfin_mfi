@@ -14,10 +14,8 @@ class WalletService
     {
         $this->client = new Client();
         $this->apiUrl = config('mfi.api');
-        $this->mfiService=new MfiService();
+        $this->mfiService = new MfiService();
     }
-
-
 
     public function getWallet(int $user_id)
     {
@@ -27,9 +25,7 @@ class WalletService
                 $this->apiUrl . '/api/wallet',
                 [
                     'query' => [
-
                         "user_id" => $user_id,
-
                     ],
                     "headers" => [
                         "Authorization" => "Bearer $token"
@@ -41,46 +37,87 @@ class WalletService
             throw $e;
         }
     }
-    public function transaction($user_id, $wallet_id, $mfi_id, $amount, $transaction_type, $to_user_id, $account, $remark, $pin = null, $otp = null, $charge = 0)
-    {
 
+    /**
+     * Process wallet transaction
+     * Maps auxfin_mfi parameters to mfi_connect wallet transfer format
+     *
+     * @param int|null $userId User ID (optional if wallet_id provided)
+     * @param int|null $walletId Wallet ID (optional if user_id provided)
+     * @param int|null $mfiId MFI ID for charge calculation
+     * @param float $amount Transaction amount
+     * @param string $transactionType Transaction type (e.g., wallet_to_wallet, wallet_to_mfi)
+     * @param int|null $toUserId Recipient user ID (optional if toWalletId provided)
+     * @param int|null $toWalletId Recipient wallet ID (optional if toUserId provided)
+     * @param float|null $charge Manual charge amount (optional, auto-calculated if null)
+     * @return mixed Transaction result
+     * @throws \Exception
+     */
+    public function transaction(
+        ?int $userId,
+        ?int $walletId,
+        ?int $mfiId,
+        float $amount,
+        string $transactionType,
+        ?int $toUserId = null,
+        ?int $toWalletId = null,
+        ?float $charge = null
+    ) {
         try {
             $token = $this->mfiService->getMfiToken();
 
-            $connection = null;
+            // Validate and resolve wallet IDs
+            $fromWalletId = $walletId;
+            $toWalletIdResolved = $toWalletId;
 
-            if ($mfi_id) {
-                $connection = $this->mfiService->checkConnection($mfi_id, 'transaction');
+            // If wallet_id not provided, try to get it from user_id
+            if ($fromWalletId === null && $userId !== null) {
+                $wallet = $this->getWallet($userId);
+                if ($wallet && isset($wallet->id)) {
+                    $fromWalletId = $wallet->id;
+                }
             }
 
+            // If to_wallet_id not provided, try to get it from to_user_id
+            if ($toWalletIdResolved === null && $toUserId !== null) {
+                $toWallet = $this->getWallet($toUserId);
+                if ($toWallet && isset($toWallet->id)) {
+                    $toWalletIdResolved = $toWallet->id;
+                }
+            }
+
+            // Build request payload matching mfi_connect expected format
+            $payload = [
+                'from_wallet_id' => $fromWalletId,
+                'to_wallet_id' => $toWalletIdResolved,
+                'mfi_id' => $mfiId,
+                'amount' => $amount,
+                'transaction_type' => $transactionType,
+            ];
+
+            // Add optional fields only if provided
+            if ($userId !== null) {
+                $payload['user_id'] = $userId;
+            }
+
+            // Add charge if explicitly provided
+            if ($charge !== null) {
+                $payload['charge'] = $charge;
+            }
 
             $response = $this->client->post(
                 $this->apiUrl . '/api/wallet/transfer',
                 [
-                    'form_params' => [
-
-                        "user_id" => $user_id,
-                        "wallet_id" => $wallet_id,
-                        "amount" => $amount,
-                        "charge" => $charge,
-                        "mfi_id" => $mfi_id,
-                        "class" => $connection->class ?? null,
-                        "transaction_type" => $transaction_type,
-                        "to_user_id"=>$to_user_id ?? null,
-                        "account_number"=>$account,
-                        "remark"=>$remark,
-                        "pin"=>$pin,
-                        "otp"=>$otp,
-
+                    'form_params' => $payload,
+                    'headers' => [
+                        "Authorization" => "Bearer $token",
+                        "Content-Type" => "application/json",
                     ],
-                    "headers" => [
-                        "Authorization" => "Bearer $token"
-                    ]
                 ]
             );
+
             return json_decode($response->getBody()->getContents());
         } catch (\Exception $e) {
-
             throw $e;
         }
     }
@@ -96,7 +133,6 @@ class WalletService
                         "to_date" => $to_date,
                         "wallet_id" => $wallet_id,
                         "user_id" => $user_id,
-
                     ],
                     "headers" => [
                         "Authorization" => "Bearer $token"

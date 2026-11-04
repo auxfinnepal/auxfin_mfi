@@ -314,6 +314,40 @@ class MfiService
         }
     }
 
+    /**
+     * Create user with wallet in mfi_connect
+     * Used for creating group users from vsla_dashboard
+     */
+    public function createUserWithWallet(int $userId, string $name, string $password, ?string $email = null, ?string $gender = null, ?string $mobile = null, ?int $addressId = null)
+    {
+        try {
+            $token = $this->getMfiToken();
+
+            $response = $this->client->post(
+                $this->apiUrl . '/api/wallet/create-user',
+                [
+                    'json' => [
+                        'id' => $userId,
+                        'name' => $name,
+                        'password' => $password,
+                        'email' => $email ?? 'user' . $userId . '@auxfin.local',
+                        'gender' => $gender,
+                        'mobile' => $mobile,
+                        'address_id' => $addressId,
+                    ],
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token,
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
     public function getAccountBalance($account_number, $mfi_id)
     {
 
@@ -685,6 +719,7 @@ class MfiService
         try {
             $token = $this->getMfiToken();
 
+            // First try MFI-specific charge
             $query = [
                 'amount' => $amount,
             ];
@@ -702,9 +737,49 @@ class MfiService
                 ]
             );
 
-            return json_decode($response->getBody()->getContents());
+            $result = json_decode($response->getBody()->getContents());
+
+            // If charge not found (empty result), try global charge
+            if (empty($result) || (is_object($result) && empty((array)$result))) {
+                $response = $this->client->get(
+                    $this->apiUrl . "/api/mfi/0/transaction-charge",
+                    [
+                        'query' => $query,
+                        'headers' => [
+                            'Authorization' => "Bearer $token",
+                        ],
+                    ]
+                );
+                $result = json_decode($response->getBody()->getContents());
+            }
+
+            return $result;
         } catch (\Exception $e) {
-            throw $e;
+            // If MFI-specific endpoint fails, try global fallback
+            try {
+                $token = $this->getMfiToken();
+
+                $query = [
+                    'amount' => $amount,
+                ];
+                if ($transactionType !== null) {
+                    $query['transaction_type'] = $transactionType;
+                }
+
+                $response = $this->client->get(
+                    $this->apiUrl . "/api/mfi/0/transaction-charge",
+                    [
+                        'query' => $query,
+                        'headers' => [
+                            'Authorization' => "Bearer $token",
+                        ],
+                    ]
+                );
+
+                return json_decode($response->getBody()->getContents());
+            } catch (\Exception $e2) {
+                throw $e;
+            }
         }
     }
 
