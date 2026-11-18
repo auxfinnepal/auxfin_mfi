@@ -17,6 +17,23 @@ class MfiService
         $this->apiUrl = config('mfi.api');
     }
 
+    public function listMfiTypes(?bool $enabled = null)
+    {
+        $token = $this->getMfiToken();
+
+        $response = $this->client->get(
+            $this->apiUrl . '/api/mfi/types',
+            [
+                'query' => $enabled === null ? [] : ['enabled' => $enabled ? 1 : 0],
+                'headers' => [
+                    'Authorization' => "Bearer $token",
+                ],
+            ]
+        );
+
+        return json_decode($response->getBody()->getContents());
+    }
+
     public function listMfi(?string $country, ?bool $status)
     {
         try {
@@ -555,6 +572,30 @@ class MfiService
 
 
 
+    /**
+     * Ask mfi_connect to perform an upstream HTTP request on our behalf.
+     *
+     * Returns the decoded envelope from mfi_connect:
+     *  - ['status' => int, 'body' => string] when the upstream responded (any status code)
+     *  - ['connection_error' => true, 'message' => string] when the upstream could not be reached
+     */
+    public function forwardRequest(string $method, string $url, array $requestOptions = []): array
+    {
+        $response = $this->client->post($this->apiUrl . '/api/proxy/request', [
+            'json' => [
+                'method' => strtoupper($method),
+                'url' => $url,
+                'options' => $requestOptions,
+            ],
+            'headers' => [
+                'Accept' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->getMfiToken(),
+            ],
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true) ?? [];
+    }
+
     public function getMfiToken()
     {
         try {
@@ -826,133 +867,6 @@ class MfiService
             $body = $exception->getResponse()?->getBody()->getContents();
             throw new \RuntimeException(
                 'Unable to list SMS gateway charges from MFI service: ' . ($body ?: $exception->getMessage()),
-                (int) $exception->getCode(),
-                $exception
-            );
-        }
-    }
-
-    public function createSmsGatewayChargeAmount(?int $organizationId, int $mfiId, int $smsGatewayId, array $data)
-    {
-        $data['organization_id'] = $organizationId;
-        
-        try {
-            $response = $this->client->post(
-                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/charges-amount",
-                [
-                    'json' => $data,
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]
-            );
-
-            return json_decode($response->getBody()->getContents());
-        } catch (\GuzzleHttp\Exception\RequestException $exception) {
-            $body = $exception->getResponse()?->getBody()->getContents();
-            throw new \RuntimeException(
-                'Unable to create SMS gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
-                (int) $exception->getCode(),
-                $exception
-            );
-        }
-    }
-
-    public function updateSmsGatewayChargeAmount(int $mfiId, int $smsGatewayId, int $chargeId, array $data)
-    {
-        try {
-            $response = $this->client->put(
-                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/charges-amount/{$chargeId}",
-                [
-                    'json' => $data,
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]
-            );
-
-            return json_decode($response->getBody()->getContents());
-        } catch (\GuzzleHttp\Exception\RequestException $exception) {
-            $body = $exception->getResponse()?->getBody()->getContents();
-            throw new \RuntimeException(
-                'Unable to update SMS gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
-                (int) $exception->getCode(),
-                $exception
-            );
-        }
-    }
-
-    public function deleteSmsGatewayChargeAmount(int $mfiId, int $smsGatewayId, int $chargeId)
-    {
-        try {
-            $response = $this->client->delete(
-                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/charges-amount/{$chargeId}",
-                [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
-                    ],
-                ]
-            );
-
-            return json_decode($response->getBody()->getContents());
-        } catch (\GuzzleHttp\Exception\RequestException $exception) {
-            $body = $exception->getResponse()?->getBody()->getContents();
-            throw new \RuntimeException(
-                'Unable to delete SMS gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
-                (int) $exception->getCode(),
-                $exception
-            );
-        }
-    }
-
-    public function toggleSmsGatewayChargeAmount(int $mfiId, int $smsGatewayId, int $chargeId)
-    {
-        try {
-            $response = $this->client->post(
-                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/charges-amount/{$chargeId}/toggle",
-                [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]
-            );
-
-            return json_decode($response->getBody()->getContents());
-        } catch (\GuzzleHttp\Exception\RequestException $exception) {
-            $body = $exception->getResponse()?->getBody()->getContents();
-            throw new \RuntimeException(
-                'Unable to toggle SMS gateway charge in MFI service: ' . ($body ?: $exception->getMessage()),
-                (int) $exception->getCode(),
-                $exception
-            );
-        }
-    }
-
-    public function calculateSmsGatewayCharge(?int $organizationId, int $mfiId, int $smsGatewayId, float $amount)
-    {
-        try {
-            $response = $this->client->post(
-                $this->apiUrl . "/api/mfi/{$mfiId}/sms-gateway/{$smsGatewayId}/calculate-charge",
-                [
-                    'json' => [
-                        'organization_id' => $organizationId,
-                        'amount' => $amount,
-                    ],
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $this->getMfiToken(),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]
-            );
-
-            return json_decode($response->getBody()->getContents());
-        } catch (\GuzzleHttp\Exception\RequestException $exception) {
-            $body = $exception->getResponse()?->getBody()->getContents();
-            throw new \RuntimeException(
-                'Unable to calculate SMS gateway charge from MFI service: ' . ($body ?: $exception->getMessage()),
                 (int) $exception->getCode(),
                 $exception
             );
