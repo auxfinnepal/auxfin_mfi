@@ -5,6 +5,7 @@ namespace Auxfin\Mfi;
 use App\Models\SsoToken;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 
 class MfiService
 {
@@ -581,11 +582,21 @@ class MfiService
      */
     public function forwardRequest(string $method, string $url, array $requestOptions = []): array
     {
-        $response = $this->client->post($this->apiUrl . '/api/proxy/request', [
+        $proxyUrl = $this->apiUrl . '/api/proxy/request';
+
+        // Query strings are dropped from the upstream URL in the log, as they can carry tokens.
+        Log::info('mfi_proxy.forward', [
+            'method' => strtoupper($method),
+            'proxy_url' => $proxyUrl,
+            'upstream_url' => strtok($url, '?') ?: $url,
+        ]);
+
+        $response = $this->client->post($proxyUrl, [
             'json' => [
                 'method' => strtoupper($method),
                 'url' => $url,
                 'options' => $requestOptions,
+                'allowed_hosts' => config('mfi.upstream_allowed_hosts', []),
             ],
             'headers' => [
                 'Accept' => 'application/json',
